@@ -1,0 +1,2686 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CYBER HUNT</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+
+body {
+  overflow: hidden;
+  background: #050914;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#hud {
+  position: fixed;
+  z-index: 3;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.panel {
+  padding: 9px 13px;
+  border: 1px solid #00eaff;
+  border-radius: 9px;
+  background: #07162bea;
+  box-shadow: 0 0 12px #00eaff44;
+}
+
+.panel small {
+  display: block;
+  margin-bottom: 4px;
+  color: #91b8d5;
+  font-size: 10px;
+}
+
+.panel strong {
+  color: #00f0ff;
+  font-size: 16px;
+}
+
+#flightPanel {
+  border-color: #ffae36;
+}
+
+#flightPanel strong {
+  color: #ffbd48;
+}
+
+#message {
+  position: fixed;
+  z-index: 4;
+  top: 105px;
+  width: 100%;
+  text-align: center;
+  color: #00f0ff;
+  font-weight: bold;
+  font-size: 17px;
+  text-shadow: 0 0 12px #00eaff;
+  pointer-events: none;
+}
+
+#controls {
+  position: fixed;
+  z-index: 3;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  color: #b4c9df;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+#menu {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  background: radial-gradient(circle, #122a4b, #030711 75%);
+}
+
+.menu-box {
+  width: min(650px, 95vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 26px 22px;
+  border: 1px solid #00eaff;
+  border-radius: 18px;
+  background: #08152a;
+  text-align: center;
+  box-shadow: 0 0 35px #00eaff55;
+}
+
+.menu-box h1 {
+  color: #00efff;
+  font-size: clamp(30px, 7vw, 48px);
+  text-shadow: 0 0 20px #00eaff;
+}
+
+.menu-box p {
+  margin: 14px 0;
+  color: #c4d7ed;
+  line-height: 1.6;
+}
+
+button {
+  padding: 12px 22px;
+  border: 0;
+  border-radius: 8px;
+  background: #00eaff;
+  color: #03121b;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: white;
+  box-shadow: 0 0 18px #00eaff;
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.secondary-button {
+  margin: 8px 5px 0;
+  border: 1px solid #00eaff;
+  background: #172d4c;
+  color: #bffaff;
+}
+
+.wallet-line {
+  color: #ffe17a !important;
+  font-size: 18px;
+}
+
+.skin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.skin-card {
+  padding: 12px 8px;
+  border: 1px solid #24617c;
+  border-radius: 12px;
+  background: #0b2038;
+}
+
+.skin-icon {
+  font-size: 34px;
+}
+
+.skin-card h3 {
+  margin: 7px 0;
+  color: #00eaff;
+  font-size: 14px;
+}
+
+.skin-card p {
+  margin: 5px 0 10px;
+  font-size: 12px;
+}
+
+.skin-card button {
+  width: 100%;
+  padding: 9px 4px;
+  font-size: 12px;
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: #9dc9e5;
+  font-size: 13px;
+}
+
+.shop-section {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #24506c;
+}
+
+.shop-section h2 {
+  color: #ffdc78;
+  font-size: 18px;
+}
+
+@media(max-width:600px) {
+  #hud {
+    justify-content: center;
+  }
+
+  .panel {
+    padding: 7px 9px;
+  }
+
+  .panel strong {
+    font-size: 13px;
+  }
+
+  #controls {
+    font-size: 9px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="hud">
+  <div class="panel">
+    <small>💰 МОНЕТЫ</small>
+    <strong id="money">0</strong>
+  </div>
+
+  <div class="panel">
+    <small>❤️ ЖИЗНИ</small>
+    <strong id="lives">3</strong>
+  </div>
+
+  <div class="panel">
+    <small>⚡ ЭНЕРГИЯ</small>
+    <strong id="energy">100%</strong>
+  </div>
+
+  <div class="panel">
+    <small>📡 ДО JDH</small>
+    <strong id="distance">370 м</strong>
+  </div>
+
+  <div class="panel">
+    <small>⏱ ВРЕМЯ</small>
+    <strong id="timer">0 сек</strong>
+  </div>
+
+  <div class="panel hidden" id="flightPanel">
+    <small>🚀 ПОЛЁТ</small>
+    <strong id="flightTimer">25 сек</strong>
+  </div>
+</div>
+
+<div id="message">ДОГОНИ JDH!</div>
+
+<div id="controls">
+  A — назад | D — вперёд | W / SPACE — прыжок |
+  S — подкат | SHIFT — ускорение | E — поймать JDH | F — полёт
+</div>
+
+<div id="menu">
+
+  <div class="menu-box" id="lobbyPanel">
+    <h1 id="menuTitle">CYBER HUNT</h1>
+
+    <p id="menuText">
+      JDH украл секретные данные и пытается скрыться!<br>
+      Ты — киберхакер, а рядом с тобой питомец.<br><br>
+      Собирай монеты, покупай скины и способности,
+      уворачивайся от препятствий и поймай JDH!
+    </p>
+
+    <p class="wallet-line">
+      🪙 ТВОИ МОНЕТЫ:
+      <strong id="lobbyCoins">0</strong>
+    </p>
+
+    <div class="stats">
+      <span>🏆 Рекорд: <b id="bestScore">0</b> м</span>
+      <span>👕 Скин: <b id="selectedSkinName">Обычный хакер</b></span>
+      <span>🐾 Питомец: <b id="selectedPetName">Собака</b></span>
+    </div>
+
+    <br>
+
+    <button id="startButton">🎮 ИГРАТЬ</button>
+    <br>
+
+    <button id="shopButton" class="secondary-button">
+      🛒 МАГАЗИН
+    </button>
+
+    <p style="font-size:12px">
+      💡 Через 30 секунд JDH начнёт ускоряться!
+    </p>
+  </div>
+
+  <div class="menu-box hidden" id="shopPanel">
+    <h1>🛒 МАГАЗИН</h1>
+
+    <p>Покупай новые образы за монеты!</p>
+
+    <p class="wallet-line">
+      🪙 БАЛАНС:
+      <strong id="shopCoins">0</strong>
+    </p>
+
+    <div class="shop-section">
+      <h2>👤 СКИНЫ ХАКЕРА</h2>
+      <div id="skinCards" class="skin-grid"></div>
+    </div>
+
+    <div class="shop-section">
+      <h2>🐾 СКИНЫ ПИТОМЦА</h2>
+      <div id="petCards" class="skin-grid"></div>
+    </div>
+
+    <div class="shop-section">
+      <h2>🚀 СПОСОБНОСТИ</h2>
+      <div id="abilityCards" class="skin-grid"></div>
+    </div>
+
+    <button id="backShopButton" class="secondary-button">
+      ← НАЗАД В ЛОББИ
+    </button>
+  </div>
+
+</div>
+<!-- ЕДИНСТВЕННАЯ КНОПКА МУЗЫКИ -->
+<button id="cyberMusicBtn" type="button">🔥 ВКЛЮЧИТЬ МУЗЫКУ</button>
+
+<style>
+#cyberMusicBtn {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  z-index: 99999;
+  padding: 13px 19px;
+  background: linear-gradient(135deg, #ff0055, #7900ff);
+  color: #fff;
+  border: 2px solid #00ffff;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 0 20px #ff00aa;
+}
+#cyberMusicBtn:hover { transform: scale(1.05); }
+</style>
+
+<script>
+// ОРИГИНАЛЬНЫЙ CYBER EDM БИТ — Web Audio API, без внешних файлов.
+(() => {
+  const button = document.getElementById("cyberMusicBtn");
+  let audio = null;
+  let master = null;
+  let timer = null;
+  let step = 0;
+  let isPlaying = false;
+  let noiseBuffer = null;
+
+  const BPM = 128;
+  const STEP_MS = 60000 / BPM / 4;
+  const bassLine = [55, 55, 65.41, 55, 73.42, 65.41, 82.41, 73.42];
+  const leadLine = [523.25, 659.25, 783.99, 659.25, 880, 783.99, 659.25, 523.25,
+                    587.33, 698.46, 880, 698.46, 987.77, 880, 783.99, 659.25];
+
+  function initAudio() {
+    if (audio) return;
+    const AudioCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtor) {
+      alert("Твой браузер не поддерживает Web Audio. Открой игру в современном браузере.");
+      return;
+    }
+    audio = new AudioCtor();
+    master = audio.createGain();
+    master.gain.value = 0.82;
+    const limiter = audio.createDynamicsCompressor();
+    limiter.threshold.value = -12;
+    limiter.knee.value = 10;
+    limiter.ratio.value = 8;
+    limiter.attack.value = 0.003;
+    limiter.release.value = 0.18;
+    master.connect(limiter);
+    limiter.connect(audio.destination);
+
+    noiseBuffer = audio.createBuffer(1, audio.sampleRate, audio.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  }
+
+  function envelopeGain(gain, now, peak, length) {
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(peak, now + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + length);
+  }
+
+  function kick() {
+    const now = audio.currentTime;
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(155, now);
+    osc.frequency.exponentialRampToValueAtTime(42, now + 0.19);
+    envelopeGain(gain, now, 0.95, 0.22);
+    osc.connect(gain);
+    gain.connect(master);
+    osc.start(now);
+    osc.stop(now + 0.23);
+  }
+
+  function noiseHit(volume, duration, cutoff) {
+    const now = audio.currentTime;
+    const source = audio.createBufferSource();
+    const filter = audio.createBiquadFilter();
+    const gain = audio.createGain();
+    source.buffer = noiseBuffer;
+    filter.type = "highpass";
+    filter.frequency.value = cutoff;
+    envelopeGain(gain, now, volume, duration);
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(master);
+    source.start(now);
+    source.stop(now + duration + 0.02);
+  }
+
+  function bass(freq) {
+    const now = audio.currentTime;
+    const osc = audio.createOscillator();
+    const filter = audio.createBiquadFilter();
+    const gain = audio.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(freq, now);
+    filter.type = "lowpass";
+    filter.frequency.value = 380;
+    envelopeGain(gain, now, 0.30, 0.19);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(master);
+    osc.start(now);
+    osc.stop(now + 0.21);
+  }
+
+  function lead(freq) {
+    const now = audio.currentTime;
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+    const filter = audio.createBiquadFilter();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(freq, now);
+    filter.type = "lowpass";
+    filter.frequency.value = 2600;
+    envelopeGain(gain, now, 0.105, 0.16);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(master);
+    osc.start(now);
+    osc.stop(now + 0.18);
+  }
+
+  function playStep() {
+    if (!isPlaying || !audio) return;
+    const s = step % 16;
+
+    // Четыре удара бочки на такт, хлопки и быстрые хай-хэты.
+    if (s === 0 || s === 4 || s === 8 || s === 12) kick();
+    if (s === 4 || s === 12) noiseHit(0.34, 0.13, 900);
+    if (s % 2 === 0) noiseHit(0.10, 0.045, 6500);
+    if (s % 4 === 2) noiseHit(0.055, 0.035, 8500);
+
+    // Плотный бас и яркий синт-лид.
+    if (s % 2 === 0) bass(bassLine[(step >> 1) % bassLine.length]);
+    if (s % 2 === 0) lead(leadLine[s]);
+    if (s === 15) lead(leadLine[15] * 2);
+
+    step++;
+  }
+
+  async function startMusic() {
+    initAudio();
+    if (!audio) return;
+    await audio.resume();
+    if (audio.state !== "running") {
+      alert("Браузер не разрешил звук. Проверь разрешение звука для вкладки.");
+      return;
+    }
+    if (isPlaying) return;
+    isPlaying = true;
+    step = 0;
+    master.gain.cancelScheduledValues(audio.currentTime);
+    master.gain.setTargetAtTime(0.82, audio.currentTime, 0.04);
+    playStep();
+    timer = setInterval(playStep, STEP_MS);
+    button.textContent = "🔴 ВЫКЛЮЧИТЬ МУЗЫКУ";
+  }
+
+  function stopMusic() {
+    isPlaying = false;
+    clearInterval(timer);
+    timer = null;
+    if (audio && master) {
+      master.gain.cancelScheduledValues(audio.currentTime);
+      master.gain.setTargetAtTime(0.0001, audio.currentTime, 0.04);
+    }
+    button.textContent = "🔥 ВКЛЮЧИТЬ МУЗЫКУ";
+  }
+
+  button.addEventListener("click", () => {
+    if (isPlaying) stopMusic();
+    else startMusic().catch(error => {
+      console.error("Ошибка запуска музыки:", error);
+      button.textContent = "⚠ НАЖМИ ЕЩЁ РАЗ";
+    });
+  });
+})();
+</script>
+
+<script>
+// ======================================
+// CYBER HUNT
+// ======================================
+
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+let W = 0;
+let H = 0;
+let ground = 0;
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  W = window.innerWidth;
+  H = window.innerHeight;
+
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+
+  canvas.style.width = W + "px";
+  canvas.style.height = H + "px";
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  ground = H - 95;
+}
+
+window.addEventListener("resize", resize);
+resize();
+
+// ======================================
+// SKINS
+// ======================================
+
+const SKINS = [
+  {
+    id: "hacker",
+    name: "Обычный хакер",
+    price: 0,
+    icon: "💻",
+    description: "Классический киберкостюм."
+  },
+  {
+    id: "pirate",
+    name: "Хакер-пират",
+    price: 150,
+    icon: "🏴‍☠️",
+    description: "Пиратская шляпа."
+  },
+  {
+    id: "luffy",
+    name: "Хакер Луффи",
+    price: 250,
+    icon: "🍖",
+    description: "Соломенная шляпа и красный костюм."
+  },
+  {
+    id: "ronaldo",
+    name: "Хакер Роналду",
+    price: 300,
+    icon: "⚽",
+    description: "Футбольная форма с номером 7."
+  },
+  {
+    id: "naruto",
+    name: "Наруто",
+    price: 400,
+    icon: "🍥",
+    description: "Оранжевый костюм и повязка ниндзя."
+  },
+  {
+    id: "student",
+    name: "Студент",
+    price: 250,
+    icon: "🎓",
+    description: "Школьная форма и рюкзак."
+  },
+  {
+    id: "dragon",
+    name: "Чёрный дракон",
+    price: 700,
+    icon: "🐉",
+    description: "Тёмная броня, рога и крылья."
+  }
+];
+
+const PETS = [
+  {
+    id: "dog",
+    name: "Собака",
+    price: 0,
+    icon: "🐶",
+    description: "Верный пёс-компаньон."
+  },
+  {
+    id: "cat",
+    name: "Кошка",
+    price: 350,
+    icon: "🐱",
+    description: "Кошка с ушками и хвостом."
+  }
+];
+
+const ABILITIES = [
+  {
+    id: "flight",
+    name: "Реактивный полёт",
+    price: 1500,
+    icon: "🚀",
+    description: "Полёт на 25 секунд. Клавиша F."
+  }
+];
+
+function loadArray(key, fallback) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "null");
+    return Array.isArray(value) ? value : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+let bankCoins = Math.max(
+  0,
+  Number(localStorage.getItem("cyberHuntCoins")) || 0
+);
+
+let ownedSkins = loadArray(
+  "cyberHuntOwnedSkins",
+  ["hacker"]
+);
+
+let ownedPets = loadArray(
+  "cyberHuntOwnedPets",
+  ["dog"]
+);
+
+let selectedSkin =
+  localStorage.getItem("cyberHuntSelectedSkin") || "hacker";
+
+let selectedPet =
+  localStorage.getItem("cyberHuntSelectedPet") || "dog";
+
+let flightOwned =
+  localStorage.getItem("cyberHuntFlight") === "true";
+
+let bestScore = Number(
+  localStorage.getItem("cyberHuntBest") || 0
+);
+
+if (!SKINS.some(s => s.id === selectedSkin) ||
+    !ownedSkins.includes(selectedSkin)) {
+  selectedSkin = "hacker";
+}
+
+if (!PETS.some(p => p.id === selectedPet) ||
+    !ownedPets.includes(selectedPet)) {
+  selectedPet = "dog";
+}
+
+function saveProfile() {
+  localStorage.setItem("cyberHuntCoins", String(bankCoins));
+  localStorage.setItem("cyberHuntOwnedSkins", JSON.stringify(ownedSkins));
+  localStorage.setItem("cyberHuntOwnedPets", JSON.stringify(ownedPets));
+  localStorage.setItem("cyberHuntSelectedSkin", selectedSkin);
+  localStorage.setItem("cyberHuntSelectedPet", selectedPet);
+  localStorage.setItem("cyberHuntFlight", String(flightOwned));
+  localStorage.setItem("cyberHuntBest", String(bestScore));
+
+  updateWallet();
+}
+
+function updateWallet() {
+  document.getElementById("lobbyCoins").textContent = bankCoins;
+  document.getElementById("shopCoins").textContent = bankCoins;
+  document.getElementById("bestScore").textContent = bestScore;
+
+  const skin = SKINS.find(s => s.id === selectedSkin);
+  const pet = PETS.find(p => p.id === selectedPet);
+
+  document.getElementById("selectedSkinName").textContent =
+    skin ? skin.name : "Обычный хакер";
+
+  document.getElementById("selectedPetName").textContent =
+    pet ? pet.name : "Собака";
+}
+
+// ======================================
+// SHOP
+// ======================================
+
+function makeShopCard(item, type) {
+  let owned = false;
+  let selected = false;
+
+  if (type === "skin") {
+    owned = ownedSkins.includes(item.id);
+    selected = selectedSkin === item.id;
+  }
+
+  if (type === "pet") {
+    owned = ownedPets.includes(item.id);
+    selected = selectedPet === item.id;
+  }
+
+  if (type === "ability") {
+    owned = flightOwned;
+    selected = flightOwned;
+  }
+
+  let label = "";
+
+  if (selected) {
+    label = "ВЫБРАН";
+  } else if (owned) {
+    label = "КУПЛЕНО";
+  } else {
+    label = `КУПИТЬ · ${item.price} 🪙`;
+  }
+
+  const card = document.createElement("div");
+  card.className = "skin-card";
+
+  const icon = document.createElement("div");
+  icon.className = "skin-icon";
+  icon.textContent = item.icon;
+
+  const title = document.createElement("h3");
+  title.textContent = item.name;
+
+  const description = document.createElement("p");
+  description.textContent = item.description;
+
+  const button = document.createElement("button");
+  button.textContent = label;
+  button.disabled = selected;
+
+  button.addEventListener("click", () => {
+    buyItem(item, type);
+  });
+
+  card.append(icon, title, description, button);
+
+  return card;
+}
+
+function renderShop() {
+  const skinContainer = document.getElementById("skinCards");
+  const petContainer = document.getElementById("petCards");
+  const abilityContainer = document.getElementById("abilityCards");
+
+  skinContainer.innerHTML = "";
+  petContainer.innerHTML = "";
+  abilityContainer.innerHTML = "";
+
+  for (const item of SKINS) {
+    skinContainer.appendChild(makeShopCard(item, "skin"));
+  }
+
+  for (const item of PETS) {
+    petContainer.appendChild(makeShopCard(item, "pet"));
+  }
+
+  for (const item of ABILITIES) {
+    abilityContainer.appendChild(makeShopCard(item, "ability"));
+  }
+
+  updateWallet();
+}
+
+function buyItem(item, type) {
+  let owned = false;
+
+  if (type === "skin") owned = ownedSkins.includes(item.id);
+  if (type === "pet") owned = ownedPets.includes(item.id);
+  if (type === "ability") owned = flightOwned;
+
+  if (!owned) {
+    if (bankCoins < item.price) {
+      alert("Не хватает монет! Собирай их во время игры.");
+      return;
+    }
+
+    bankCoins -= item.price;
+
+    if (type === "skin") ownedSkins.push(item.id);
+    if (type === "pet") ownedPets.push(item.id);
+    if (type === "ability") flightOwned = true;
+  }
+
+  if (type === "skin") selectedSkin = item.id;
+  if (type === "pet") selectedPet = item.id;
+
+  saveProfile();
+  renderShop();
+}
+
+function openShop() {
+  document.getElementById("lobbyPanel").classList.add("hidden");
+  document.getElementById("shopPanel").classList.remove("hidden");
+  renderShop();
+}
+
+function closeShop() {
+  document.getElementById("shopPanel").classList.add("hidden");
+  document.getElementById("lobbyPanel").classList.remove("hidden");
+  updateWallet();
+}
+
+document.getElementById("shopButton").onclick = openShop;
+document.getElementById("backShopButton").onclick = closeShop;
+
+// ======================================
+// GAME VARIABLES
+// ======================================
+
+const keys = {};
+
+let state = "menu";
+let camera = 0;
+
+let money = 0;
+let lives = 3;
+let energy = 100;
+
+let worldEnd = 12000;
+let elapsedSeconds = 0;
+
+let lastTime = 0;
+let messageTimer = 0;
+
+let obstacles = [];
+let coins = [];
+let powerups = [];
+let buildings = [];
+let checkpoints = [];
+
+let combo = 0;
+let comboTimer = 0;
+let shield = 0;
+
+const player = {
+  x: 100,
+  y: 0,
+  vx: 0,
+  vy: 0,
+  w: 38,
+  h: 72,
+  grounded: true,
+  sliding: false,
+  slideTimer: 0,
+  invincible: 0,
+  runTime: 0,
+
+  flightMode: "idle",
+  flightTime: 0,
+  flightCooldown: 0,
+  flightHeight: 0,
+  flightParticles: []
+};
+
+const jdh = {
+  x: 470,
+  y: 0,
+  runTime: 0,
+  speed: 3.8
+};
+
+const dog = {
+  runTime: 0
+};
+
+let checkpointX = 100;
+let checkpointIndex = 0;
+
+// ======================================
+// KEYBOARD
+// ======================================
+
+window.addEventListener("keydown", e => {
+  const code = e.code;
+
+  if ([
+    "KeyA", "KeyD", "KeyW", "KeyS",
+    "Space", "ShiftLeft", "ShiftRight",
+    "KeyE", "KeyR", "Enter", "KeyF"
+  ].includes(code)) {
+    e.preventDefault();
+  }
+
+  keys[code] = true;
+
+  if (code === "KeyE") tryCatch();
+
+  if (code === "KeyF" && !e.repeat) {
+    activateFlight();
+  }
+
+  if (
+    (code === "Enter" || code === "KeyR") &&
+    state !== "playing"
+  ) {
+    startGame();
+  }
+});
+
+window.addEventListener("keyup", e => {
+  keys[e.code] = false;
+});
+
+window.addEventListener("blur", () => {
+  for (const code in keys) {
+    keys[code] = false;
+  }
+});
+
+// ======================================
+// WORLD GENERATION
+// ======================================
+
+function createWorld() {
+  obstacles = [];
+  coins = [];
+  powerups = [];
+  buildings = [];
+  checkpoints = [];
+
+  for (let x = 0; x < worldEnd; x += 180) {
+    buildings.push({
+      x,
+      w: 80 + Math.random() * 90,
+      h: 110 + Math.random() * 240
+    });
+  }
+
+  for (
+    let x = 700;
+    x < worldEnd - 300;
+    x += 620 + Math.random() * 220
+  ) {
+    const r = Math.random();
+
+    if (r < 0.42) {
+      obstacles.push({
+        x, w: 55, h: 42,
+        type: "box",
+        passed: false
+      });
+    } else if (r < 0.76) {
+      obstacles.push({
+        x, w: 90, h: 55,
+        type: "barrier",
+        passed: false
+      });
+    } else {
+      obstacles.push({
+        x, w: 55, h: 4,
+        type: "laser",
+        passed: false
+      });
+    }
+  }
+
+  for (let x = 300; x < worldEnd; x += 180) {
+    coins.push({
+      x: x + Math.random() * 60,
+      y: ground - 65 - Math.random() * 65,
+      taken: false
+    });
+  }
+
+  for (let x = 900; x < worldEnd; x += 1250) {
+    powerups.push({
+      x: x + Math.random() * 100,
+      y: ground - 48,
+      type: "energy",
+      taken: false
+    });
+  }
+
+  for (let x = 1500; x < worldEnd; x += 2300) {
+    powerups.push({
+      x: x + Math.random() * 100,
+      y: ground - 95,
+      type: "shield",
+      taken: false
+    });
+  }
+
+  for (
+    let x = 1600;
+    x < worldEnd - 500;
+    x += 1600
+  ) {
+    checkpoints.push({
+      x,
+      activated: false
+    });
+  }
+}
+
+// ======================================
+// RESET
+// ======================================
+
+function resetGame() {
+  player.x = 100;
+  player.y = ground - player.h;
+  player.vx = 0;
+  player.vy = 0;
+
+  player.grounded = true;
+  player.sliding = false;
+  player.slideTimer = 0;
+  player.invincible = 0;
+  player.runTime = 0;
+
+  player.flightMode = "idle";
+  player.flightTime = 0;
+  player.flightCooldown = 0;
+  player.flightHeight = 0;
+  player.flightParticles = [];
+
+  jdh.x = 470;
+  jdh.y = ground - 65;
+  jdh.runTime = 0;
+  jdh.speed = 3.8;
+
+  dog.runTime = 0;
+
+  camera = 0;
+  money = 0;
+  lives = 3;
+  energy = 100;
+
+  elapsedSeconds = 0;
+  combo = 0;
+  comboTimer = 0;
+  shield = 0;
+
+  checkpointX = 100;
+  checkpointIndex = 0;
+
+  createWorld();
+  updateHUD();
+}
+
+// ======================================
+// HUD
+// ======================================
+
+function updateHUD() {
+  document.getElementById("money").textContent = money;
+  document.getElementById("lives").textContent = lives;
+
+  document.getElementById("energy").textContent =
+    Math.floor(energy) + "%";
+
+  document.getElementById("distance").textContent =
+    Math.max(0, Math.floor(jdh.x - player.x)) + " м";
+
+  document.getElementById("timer").textContent =
+    Math.floor(elapsedSeconds) + " сек";
+
+  const flightPanel = document.getElementById("flightPanel");
+
+  if (player.flightMode !== "idle") {
+    flightPanel.classList.remove("hidden");
+
+    document.getElementById("flightTimer").textContent =
+      Math.ceil(player.flightTime) + " сек";
+  } else {
+    flightPanel.classList.add("hidden");
+  }
+}
+
+function showMessage(message) {
+  document.getElementById("message").textContent = message;
+  messageTimer = 150;
+}
+
+// ======================================
+// MENU
+// ======================================
+
+function showMenu(title, description, buttonText) {
+  state = "over";
+
+  document.getElementById("menu").classList.remove("hidden");
+  document.getElementById("lobbyPanel").classList.remove("hidden");
+  document.getElementById("shopPanel").classList.add("hidden");
+
+  document.getElementById("menuTitle").textContent = title;
+  document.getElementById("menuText").textContent = description;
+  document.getElementById("startButton").textContent = buttonText;
+
+  updateWallet();
+}
+
+function startGame() {
+  resetGame();
+  state = "playing";
+
+  document.getElementById("menu").classList.add("hidden");
+
+  showMessage("ПОГОНЯ НАЧАЛАСЬ!");
+}
+
+document.getElementById("startButton").onclick = startGame;
+
+// ======================================
+// CHECKPOINTS
+// ======================================
+
+function activateCheckpoints() {
+  for (let i = 0; i < checkpoints.length; i++) {
+    const cp = checkpoints[i];
+
+    if (!cp.activated && player.x >= cp.x) {
+      cp.activated = true;
+
+      checkpointX = cp.x;
+      checkpointIndex = i + 1;
+
+      showMessage(
+        "CHECKPOINT " + checkpointIndex + " АКТИВИРОВАН!"
+      );
+    }
+  }
+}
+
+function respawn() {
+  if (state !== "playing") return;
+
+  player.x = checkpointX;
+  player.y = ground - player.h;
+
+  player.vx = 0;
+  player.vy = 0;
+
+  player.grounded = true;
+  player.sliding = false;
+  player.slideTimer = 0;
+  player.invincible = 100;
+
+  player.flightMode = "idle";
+  player.flightTime = 0;
+  player.flightHeight = 0;
+
+  jdh.x = Math.max(jdh.x, player.x + 180);
+
+  camera = Math.max(0, player.x - W * 0.28);
+
+  showMessage("ВОЗРОЖДЕНИЕ! CHECKPOINT " + checkpointIndex);
+  updateHUD();
+}
+
+// ======================================
+// FINISH
+// ======================================
+
+function finishGame(win) {
+  if (state !== "playing") return;
+
+  state = win ? "win" : "over";
+
+  const distance = Math.floor(player.x);
+
+  if (distance > bestScore) {
+    bestScore = distance;
+  }
+
+  saveProfile();
+
+  showMenu(
+    win ? "🏆 MISSION COMPLETE!" : "MISSION FAILED",
+    win
+      ? "Ты поймал JDH! Отличная работа!"
+      : "Жизни закончились. Попробуй ещё раз!",
+    "🔄 ИГРАТЬ СНОВА"
+  );
+}
+
+// ======================================
+// CATCH JDH
+// ======================================
+
+function tryCatch() {
+  if (state !== "playing") return;
+
+  const distance = jdh.x - player.x;
+
+  if (distance < 110 && distance > -30) {
+    finishGame(true);
+  } else {
+    showMessage("ПОДОЙДИ БЛИЖЕ К JDH!");
+  }
+}
+
+// ======================================
+// FLIGHT SYSTEM
+// ======================================
+
+function activateFlight() {
+  if (state !== "playing") return;
+
+  if (!flightOwned) {
+    showMessage("🚀 СНАЧАЛА КУПИ ПОЛЁТ В МАГАЗИНЕ!");
+    return;
+  }
+
+  if (player.flightMode !== "idle") {
+    showMessage("ТЫ УЖЕ ЛЕТИШЬ!");
+    return;
+  }
+
+  if (player.flightCooldown > 0) {
+    showMessage(
+      "ПЕРЕЗАРЯДКА: " +
+      Math.ceil(player.flightCooldown) + " сек"
+    );
+    return;
+  }
+
+  player.flightMode = "launch";
+  player.flightTime = 25;
+  player.flightHeight = 0;
+  player.vy = 0;
+  player.grounded = false;
+
+  player.flightParticles = [];
+
+  showMessage("🚀 РЕАКТИВНЫЙ РАНЕЦ АКТИВИРОВАН!");
+  updateHUD();
+}
+
+function updateFlight(dt) {
+  const step = dt / 16.67;
+  const delta = dt / 1000;
+
+  if (player.flightCooldown > 0) {
+    player.flightCooldown = Math.max(
+      0,
+      player.flightCooldown - delta
+    );
+  }
+
+  if (player.flightMode === "idle") return;
+
+  const flight = player;
+
+  if (flight.flightMode === "launch") {
+    flight.flightHeight += 4.5 * step;
+
+    if (flight.flightHeight >= 115) {
+      flight.flightHeight = 115;
+      flight.flightMode = "flying";
+    }
+  }
+
+  if (flight.flightMode === "flying") {
+    flight.flightTime -= delta;
+
+    if (keys["KeyW"]) {
+      flight.flightHeight += 3.5 * step;
+    }
+
+    if (keys["KeyS"]) {
+      flight.flightHeight -= 3.5 * step;
+    }
+
+    flight.flightHeight = Math.max(
+      45,
+      Math.min(190, flight.flightHeight)
+    );
+
+    if (flight.flightTime <= 0) {
+      flight.flightTime = 0;
+      flight.flightMode = "landing";
+      showMessage("⚠ ПОЛЁТ ЗАКАНЧИВАЕТСЯ! ПОСАДКА!");
+    }
+  }
+
+  if (flight.flightMode === "landing") {
+    flight.flightHeight -= 3.8 * step;
+
+    if (flight.flightHeight <= 0) {
+      flight.flightHeight = 0;
+      flight.flightMode = "idle";
+      flight.flightCooldown = 12;
+      flight.grounded = true;
+      flight.y = ground - flight.h;
+      flight.vy = 0;
+
+      showMessage("ПОСАДКА ЗАВЕРШЕНА!");
+    }
+  }
+
+  if (flight.flightMode !== "idle") {
+    flight.y = ground - flight.h - flight.flightHeight;
+  }
+
+  // Частицы реактивного ранца.
+  if (
+    flight.flightMode === "launch" ||
+    flight.flightMode === "flying"
+  ) {
+    for (let i = 0; i < 3; i++) {
+      flight.flightParticles.push({
+        x: flight.x - 8 + Math.random() * 12,
+        y: flight.y + 48 + Math.random() * 12,
+        vx: -1 - Math.random() * 2,
+        vy: 2 + Math.random() * 3,
+        life: 15 + Math.random() * 20,
+        size: 3 + Math.random() * 5
+      });
+    }
+  }
+
+  for (const p of flight.flightParticles) {
+    p.x += p.vx * step;
+    p.y += p.vy * step;
+    p.life -= step;
+  }
+
+  flight.flightParticles =
+    flight.flightParticles.filter(p => p.life > 0);
+}
+
+function drawFlightEffects() {
+  for (const p of player.flightParticles) {
+    const alpha = Math.max(0, p.life / 30);
+
+    ctx.globalAlpha = alpha;
+
+    ctx.fillStyle =
+      Math.random() > 0.5 ? "#ff9d24" : "#00eaff";
+
+    ctx.shadowColor = "#ff6a00";
+    ctx.shadowBlur = 14;
+
+    ctx.beginPath();
+    ctx.arc(
+      p.x - camera,
+      p.y,
+      p.size * alpha,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.shadowBlur = 0;
+}
+
+// ======================================
+// COLLISION
+// ======================================
+
+function playerRect() {
+  const h = player.sliding ? 34 : player.h;
+
+  return {
+    x: player.x + 4,
+    y: player.y + (player.sliding ? player.h - h : 3),
+    w: player.w - 8,
+    h: h - 3
+  };
+}
+
+function hit(a, b) {
+  return (
+    a.x < b.x + b.w &&
+    a.x + a.w > b.x &&
+    a.y < b.y + b.h &&
+    a.y + a.h > b.y
+  );
+}
+
+// ======================================
+// PLAYER UPDATE
+// ======================================
+
+function updatePlayer(dt) {
+  const step = dt / 16.67;
+
+  let speed = 5.2;
+
+  const boosting =
+    (keys["ShiftLeft"] || keys["ShiftRight"]) &&
+    energy > 0;
+
+  if (boosting) {
+    speed = 7.2;
+    energy = Math.max(0, energy - 0.65 * step);
+  } else {
+    energy = Math.min(100, energy + 0.3 * step);
+  }
+
+  player.vx = 0;
+
+  if (keys["KeyA"]) player.vx = -speed;
+  if (keys["KeyD"]) player.vx = speed;
+
+  player.x += player.vx * step;
+
+  player.x = Math.max(
+    0,
+    Math.min(worldEnd - 100, player.x)
+  );
+
+  if (player.flightMode !== "idle") {
+    updateFlight(dt);
+  } else {
+    // Подкат.
+    if (keys["KeyS"] && player.grounded && !player.sliding) {
+      player.sliding = true;
+      player.slideTimer = 18;
+    }
+
+    if (player.slideTimer > 0) {
+      player.slideTimer -= step;
+    } else {
+      player.sliding = false;
+    }
+
+    // Прыжок.
+    if (
+      (keys["KeyW"] || keys["Space"]) &&
+      player.grounded
+    ) {
+      player.vy = -13;
+      player.grounded = false;
+      player.sliding = false;
+    }
+
+    player.vy += 0.65 * step;
+    player.y += player.vy * step;
+
+    if (player.y + player.h >= ground) {
+      player.y = ground - player.h;
+      player.vy = 0;
+      player.grounded = true;
+    }
+  }
+
+  if (player.vx !== 0) {
+    player.runTime += 0.27 * step;
+  }
+
+  if (player.invincible > 0) {
+    player.invincible -= step;
+  }
+
+  if (shield > 0) {
+    shield -= step;
+  }
+}
+
+// ======================================
+// JDH UPDATE
+// ======================================
+
+function updateJDH(dt) {
+  const step = dt / 16.67;
+
+  if (elapsedSeconds >= 30) {
+    const extraTime = elapsedSeconds - 30;
+    const levels = Math.floor(extraTime / 15) + 1;
+
+    jdh.speed = Math.min(6.2, 3.8 + levels * 0.35);
+  } else {
+    jdh.speed = 3.8;
+  }
+
+  jdh.x += jdh.speed * step;
+  jdh.runTime += 0.3 * step;
+}
+
+// ======================================
+// DOG UPDATE
+// ======================================
+
+function updateDog(dt) {
+  dog.runTime += 0.34 * (dt / 16.67);
+}
+
+// ======================================
+// OBSTACLES AND ITEMS
+// ======================================
+
+function updateWorld(dt) {
+  const rect = playerRect();
+  const step = dt / 16.67;
+
+  const flying =
+    player.flightMode !== "idle";
+
+  for (const o of obstacles) {
+    if (o.passed) continue;
+
+    let box;
+
+    if (o.type === "laser") {
+      box = {
+        x: o.x + 6,
+        y: ground - 44,
+        w: o.w - 12,
+        h: 4
+      };
+    } else {
+      box = {
+        x: o.x + 4,
+        y: ground - o.h + 5,
+        w: o.w - 8,
+        h: o.h - 5
+      };
+    }
+
+    // Во время полёта препятствия не задевают игрока.
+    if (!flying && hit(rect, box) && player.invincible <= 0) {
+      o.passed = true;
+
+      if (shield > 0) {
+        shield = 0;
+        player.invincible = 35;
+        showMessage("🛡 ЩИТ СПАС ТЕБЯ!");
+        return;
+      }
+
+      lives--;
+      player.invincible = 100;
+
+      if (lives <= 0) {
+        finishGame(false);
+        return;
+      }
+
+      respawn();
+      return;
+    }
+
+    if (o.x + o.w < player.x - 100) {
+      o.passed = true;
+    }
+  }
+
+  // Монеты.
+  for (const c of coins) {
+    if (c.taken) continue;
+
+    const box = {
+      x: c.x - 12,
+      y: c.y - 12,
+      w: 24,
+      h: 24
+    };
+
+    if (hit(rect, box)) {
+      c.taken = true;
+
+      combo++;
+      comboTimer = 100;
+
+      let reward = 10;
+
+      if (combo >= 3) {
+        reward += 5;
+        showMessage("🔥 КОМБО x" + combo + "! +15 МОНЕТ");
+      } else {
+        showMessage("+10 МОНЕТ!");
+      }
+
+      money += reward;
+      bankCoins += reward;
+
+      saveProfile();
+    }
+  }
+
+  if (comboTimer > 0) {
+    comboTimer -= step;
+  } else {
+    combo = 0;
+  }
+
+  // Бонусные предметы.
+  for (const p of powerups) {
+    if (p.taken) continue;
+
+    const box = {
+      x: p.x - 15,
+      y: p.y - 15,
+      w: 30,
+      h: 30
+    };
+
+    if (hit(rect, box)) {
+      p.taken = true;
+
+      if (p.type === "energy") {
+        energy = Math.min(100, energy + 45);
+        showMessage("⚡ ЭНЕРГИЯ ВОССТАНОВЛЕНА!");
+      }
+
+      if (p.type === "shield") {
+        shield = 600;
+        showMessage("🛡 ЩИТ АКТИВИРОВАН!");
+      }
+    }
+  }
+
+  activateCheckpoints();
+
+  messageTimer = Math.max(0, messageTimer - step);
+
+  updateHUD();
+}
+
+// ======================================
+// GAME UPDATE
+// ======================================
+
+function update(dt) {
+  if (state !== "playing") return;
+
+  elapsedSeconds += dt / 1000;
+
+  if (
+    elapsedSeconds >= 30 &&
+    elapsedSeconds - dt / 1000 < 30
+  ) {
+    showMessage("⚠ JDH УСКОРЯЕТСЯ!");
+  }
+
+  updatePlayer(dt);
+  updateJDH(dt);
+  updateDog(dt);
+  updateWorld(dt);
+
+  if (state !== "playing") return;
+
+  camera = Math.max(0, player.x - W * 0.28);
+
+  if (
+    jdh.x >= worldEnd - 100 &&
+    player.x < jdh.x - 110
+  ) {
+    finishGame(false);
+    return;
+  }
+
+  if (player.x >= worldEnd - 150) {
+    finishGame(true);
+    return;
+  }
+}
+
+// ======================================
+// BACKGROUND
+// ======================================
+
+function drawBackground() {
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+
+  sky.addColorStop(0, "#060d20");
+  sky.addColorStop(1, "#182440");
+
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H);
+
+  // Луна.
+  ctx.fillStyle = "#b9f8ff";
+  ctx.shadowColor = "#00eaff";
+  ctx.shadowBlur = 30;
+
+  ctx.beginPath();
+  ctx.arc(W - 120, 100, 35, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+
+  // Здания.
+  for (const b of buildings) {
+    const x = b.x - camera * 0.45;
+
+    if (x < -200 || x > W + 100) continue;
+
+    ctx.fillStyle = "#0b1830";
+    ctx.fillRect(x, ground - b.h, b.w, b.h);
+
+    ctx.strokeStyle = "#174568";
+    ctx.strokeRect(x, ground - b.h, b.w, b.h);
+
+    for (let i = 0; i < 6; i++) {
+      ctx.fillStyle = i % 2 ? "#00eaff" : "#a44dff";
+      ctx.globalAlpha = 0.65;
+
+      ctx.fillRect(
+        x + 12 + (i % 3) * 22,
+        ground - b.h + 20 + Math.floor(i / 3) * 32,
+        8,
+        12
+      );
+    }
+
+    ctx.globalAlpha = 1;
+  }
+
+  // Дорога.
+  ctx.fillStyle = "#080d18";
+  ctx.fillRect(0, ground, W, H - ground);
+
+  ctx.fillStyle = "#00eaff";
+  ctx.shadowColor = "#00eaff";
+  ctx.shadowBlur = 12;
+  ctx.fillRect(0, ground - 3, W, 3);
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = "#24405a";
+
+  for (let x = -camera % 100; x < W; x += 100) {
+    ctx.fillRect(x, ground + 38, 45, 3);
+  }
+}
+
+// ======================================
+// CHECKPOINT DRAW
+// ======================================
+
+function drawCheckpoints() {
+  for (const cp of checkpoints) {
+    const x = cp.x - camera;
+
+    if (x < -50 || x > W + 50) continue;
+
+    ctx.fillStyle = cp.activated ? "#00ff99" : "#55758b";
+    ctx.fillRect(x, ground - 105, 5, 105);
+
+    ctx.fillStyle = cp.activated ? "#00ff99" : "#8aa7bb";
+
+    ctx.beginPath();
+    ctx.moveTo(x + 5, ground - 105);
+    ctx.lineTo(x + 42, ground - 90);
+    ctx.lineTo(x + 5, ground - 75);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 10px Arial";
+    ctx.fillText("CHECKPOINT", x - 23, ground - 115);
+  }
+}
+
+// ======================================
+// FLIGHT ANIMATION
+// ======================================
+
+function drawJetpack() {
+  if (player.flightMode === "idle") return;
+
+  const x = player.x - camera;
+  const y = player.y;
+
+  const flame = 15 + Math.sin(performance.now() / 35) * 5;
+
+  ctx.save();
+
+  // Огонь ранца.
+  const gradient = ctx.createLinearGradient(
+    x - 8, y + 45,
+    x - 8, y + 45 + flame * 2
+  );
+
+  gradient.addColorStop(0, "#ffffff");
+  gradient.addColorStop(0.3, "#00eaff");
+  gradient.addColorStop(0.65, "#ff9d24");
+  gradient.addColorStop(1, "rgba(255,40,0,0)");
+
+  ctx.fillStyle = gradient;
+  ctx.shadowColor = "#ff9d24";
+  ctx.shadowBlur = 22;
+
+  ctx.beginPath();
+  ctx.moveTo(x - 13, y + 48);
+  ctx.lineTo(x - 4, y + 48);
+  ctx.lineTo(x - 9, y + 48 + flame * 2);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(x - 2, y + 48);
+  ctx.lineTo(x + 7, y + 48);
+  ctx.lineTo(x + 3, y + 48 + flame * 1.7);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+
+  // Свет вокруг героя.
+  ctx.strokeStyle = "rgba(0,234,255,.65)";
+  ctx.lineWidth = 2;
+
+  ctx.beginPath();
+  ctx.ellipse(x + 5, y + 35, 30, 45, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// ======================================
+// HACKER DRAW
+// ======================================
+
+function drawHacker(x, y, time, sliding) {
+  const styles = {
+    hacker: {
+      glow: "#00eaff",
+      body: "#101b33",
+      pack: "#182d50"
+    },
+    pirate: {
+      glow: "#ffb347",
+      body: "#38251e",
+      pack: "#51331e"
+    },
+    luffy: {
+      glow: "#ff4b35",
+      body: "#b5262d",
+      pack: "#5c2630"
+    },
+    ronaldo: {
+      glow: "#ffe15a",
+      body: "#173b83",
+      pack: "#10265a"
+    },
+    naruto: {
+      glow: "#ff8a24",
+      body: "#e76b19",
+      pack: "#a63e12"
+    },
+    student: {
+      glow: "#72aaff",
+      body: "#263b65",
+      pack: "#172b50"
+    },
+    dragon: {
+      glow: "#00ff88",
+      body: "#101b1b",
+      pack: "#07130f"
+    }
+  };
+
+  const style = styles[selectedSkin] || styles.hacker;
+
+  const flying = player.flightMode !== "idle";
+
+  ctx.save();
+  ctx.translate(x - camera, y);
+
+  if (flying) {
+    ctx.rotate(-0.13);
+  }
+
+  if (sliding) {
+    ctx.translate(0, 36);
+    ctx.rotate(-0.12);
+  }
+
+  const swing = Math.sin(time) * 9;
+
+  // Крылья дракона.
+  if (selectedSkin === "dragon") {
+    ctx.fillStyle = "#07120e";
+    ctx.strokeStyle = "#00ff88";
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.moveTo(-5, 28);
+    ctx.lineTo(-42, -2);
+    ctx.lineTo(-35, 42);
+    ctx.lineTo(-12, 51);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(15, 28);
+    ctx.lineTo(49, -2);
+    ctx.lineTo(42, 42);
+    ctx.lineTo(18, 51);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Рюкзак.
+  ctx.fillStyle = style.pack;
+  ctx.fillRect(-12, 25, 17, 28);
+
+  ctx.strokeStyle = style.glow;
+  ctx.lineWidth = 2;
+  ctx.shadowColor = style.glow;
+  ctx.shadowBlur = 12;
+  ctx.strokeRect(-12, 25, 17, 28);
+  ctx.shadowBlur = 0;
+
+  // Ноги.
+  ctx.strokeStyle = style.glow;
+  ctx.lineWidth = 9;
+  ctx.lineCap = "round";
+
+  ctx.beginPath();
+  ctx.moveTo(0, 52);
+  ctx.lineTo(-4 + (flying ? 3 : swing), flying ? 65 : 68);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(8, 52);
+  ctx.lineTo(13 - (flying ? 3 : swing), flying ? 65 : 68);
+  ctx.stroke();
+
+  // Обувь.
+  ctx.fillStyle = "#d9faff";
+  ctx.fillRect(-12 + swing, 65, 17, 6);
+  ctx.fillRect(8 - swing, 65, 17, 6);
+
+  // Тело.
+  ctx.fillStyle = style.body;
+  ctx.beginPath();
+  ctx.roundRect(-8, 21, 28, 36, 6);
+  ctx.fill();
+
+  ctx.strokeStyle = style.glow;
+  ctx.lineWidth = 2;
+  ctx.shadowColor = style.glow;
+  ctx.shadowBlur = 10;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Руки.
+  ctx.strokeStyle = style.body;
+  ctx.lineWidth = 8;
+
+  ctx.beginPath();
+  ctx.moveTo(-5, 28);
+  ctx.lineTo(flying ? -17 : -12 - swing, 43);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(17, 28);
+  ctx.lineTo(flying ? 30 : 25 + swing, 40);
+  ctx.stroke();
+
+  // Голова.
+  ctx.fillStyle = "#c58b65";
+
+  ctx.beginPath();
+  ctx.arc(6, 14, 14, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Капюшон.
+  ctx.strokeStyle = style.glow;
+  ctx.lineWidth = 5;
+
+  ctx.beginPath();
+  ctx.arc(6, 14, 15, Math.PI, Math.PI * 2);
+  ctx.stroke();
+
+  // Маска.
+  ctx.fillStyle = "#071322";
+  ctx.fillRect(-5, 13, 23, 9);
+
+  ctx.fillStyle = style.glow;
+  ctx.shadowColor = style.glow;
+  ctx.shadowBlur = 14;
+
+  ctx.fillRect(-2, 12, 8, 3);
+  ctx.fillRect(9, 12, 7, 3);
+
+  ctx.shadowBlur = 0;
+
+  // Луффи.
+  if (selectedSkin === "luffy") {
+    ctx.fillStyle = "#f4c542";
+
+    ctx.beginPath();
+    ctx.ellipse(6, 0, 23, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#c92d28";
+    ctx.fillRect(-7, -12, 26, 9);
+
+    ctx.fillStyle = "#f4c542";
+    ctx.fillRect(-7, -13, 26, 3);
+  }
+
+  // Пират.
+  if (selectedSkin === "pirate") {
+    ctx.fillStyle = "#17131d";
+
+    ctx.beginPath();
+    ctx.ellipse(6, 2, 19, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#e9d7a4";
+    ctx.font = "bold 11px Arial";
+    ctx.fillText("☠", 0, 6);
+  }
+
+  // Роналду.
+  if (selectedSkin === "ronaldo") {
+    ctx.fillStyle = "#ffe15a";
+    ctx.font = "bold 13px Arial";
+    ctx.fillText("7", 1, 43);
+  }
+
+  // Наруто.
+  if (selectedSkin === "naruto") {
+    // Светлые волосы.
+    ctx.fillStyle = "#ffd23f";
+
+    ctx.beginPath();
+    ctx.moveTo(-8, 7);
+    ctx.lineTo(-13, -7);
+    ctx.lineTo(-3, -2);
+    ctx.lineTo(3, -13);
+    ctx.lineTo(9, -3);
+    ctx.lineTo(19, -10);
+    ctx.lineTo(17, 8);
+    ctx.closePath();
+    ctx.fill();
+
+    // Повязка.
+    ctx.fillStyle = "#27334c";
+    ctx.fillRect(-9, 2, 30, 5);
+
+    ctx.fillStyle = "#d6dce8";
+    ctx.fillRect(1, 2, 11, 5);
+
+    ctx.fillStyle = "#ff8a24";
+    ctx.fillRect(-7, 43, 26, 8);
+  }
+
+  // Студент.
+  if (selectedSkin === "student") {
+    // Волосы.
+    ctx.fillStyle = "#29202a";
+    ctx.beginPath();
+    ctx.arc(6, 5, 14, Math.PI, Math.PI * 2);
+    ctx.fill();
+
+    // Воротник.
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.moveTo(-3, 22);
+    ctx.lineTo(6, 32);
+    ctx.lineTo(15, 22);
+    ctx.fill();
+
+    // Галстук.
+    ctx.fillStyle = "#e43b56";
+    ctx.beginPath();
+    ctx.moveTo(5, 27);
+    ctx.lineTo(10, 27);
+    ctx.lineTo(9, 43);
+    ctx.lineTo(7, 47);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Чёрный дракон.
+  if (selectedSkin === "dragon") {
+    // Рога.
+    ctx.fillStyle = "#101b17";
+    ctx.strokeStyle = "#00ff88";
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+    ctx.moveTo(-3, 5);
+    ctx.lineTo(-13, -9);
+    ctx.lineTo(2, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(13, 5);
+    ctx.lineTo(24, -9);
+    ctx.lineTo(11, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Глаза дракона.
+    ctx.fillStyle = "#00ff88";
+    ctx.fillRect(-1, 12, 6, 3);
+    ctx.fillRect(10, 12, 6, 3);
+  }
+
+  // Щит.
+  if (shield > 0) {
+    ctx.strokeStyle = "#00ff99";
+    ctx.lineWidth = 3;
+    ctx.shadowColor = "#00ff99";
+    ctx.shadowBlur = 18;
+
+    ctx.beginPath();
+    ctx.ellipse(5, 35, 30, 42, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.restore();
+}
+
+// ======================================
+// PET DRAW
+// ======================================
+
+function drawDog(x, y, time) {
+  ctx.save();
+  ctx.translate(x - camera, y);
+
+  const swing = Math.sin(time) * 7;
+  const bounce = Math.abs(Math.sin(time * 2)) * 3;
+
+  ctx.translate(0, -bounce);
+
+  if (selectedPet === "cat") {
+    // Хвост кошки.
+    ctx.strokeStyle = "#d5d9e3";
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+
+    ctx.beginPath();
+    ctx.moveTo(-14, 27);
+    ctx.quadraticCurveTo(
+      -35,
+      12 + Math.sin(time * 2) * 5,
+      -26,
+      0 + Math.sin(time * 2) * 5
+    );
+    ctx.stroke();
+
+    // Тело.
+    ctx.fillStyle = "#c6d0df";
+
+    ctx.beginPath();
+    ctx.ellipse(0, 30, 22, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Лапы.
+    ctx.strokeStyle = "#b3bfd0";
+    ctx.lineWidth = 6;
+
+    ctx.beginPath();
+    ctx.moveTo(-5, 37);
+    ctx.lineTo(-10 + swing, 50);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(8, 37);
+    ctx.lineTo(12 - swing, 50);
+    ctx.stroke();
+
+    // Голова.
+    ctx.fillStyle = "#dce4ee";
+
+    ctx.beginPath();
+    ctx.arc(25, 17, 13, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Ушки.
+    ctx.fillStyle = "#dce4ee";
+
+    ctx.beginPath();
+    ctx.moveTo(14, 10);
+    ctx.lineTo(14, -5);
+    ctx.lineTo(24, 7);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(27, 7);
+    ctx.lineTo(37, -5);
+    ctx.lineTo(37, 12);
+    ctx.closePath();
+    ctx.fill();
+
+    // Внутренние ушки.
+    ctx.fillStyle = "#ed8ea8";
+
+    ctx.beginPath();
+    ctx.moveTo(17, 7);
+    ctx.lineTo(16, 0);
+    ctx.lineTo(22, 7);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(30, 7);
+    ctx.lineTo(35, 0);
+    ctx.lineTo(35, 8);
+    ctx.closePath();
+    ctx.fill();
+
+    // Глаза и нос.
+    ctx.fillStyle = "#111";
+
+    ctx.beginPath();
+    ctx.arc(22, 16, 2, 0, Math.PI * 2);
+    ctx.arc(31, 16, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#ed8ea8";
+
+    ctx.beginPath();
+    ctx.arc(27, 22, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Усы.
+    ctx.strokeStyle = "#667080";
+    ctx.lineWidth = 1;
+
+    ctx.beginPath();
+    ctx.moveTo(20, 23);
+    ctx.lineTo(8, 20);
+    ctx.moveTo(20, 25);
+    ctx.lineTo(8, 28);
+    ctx.moveTo(34, 23);
+    ctx.lineTo(45, 20);
+    ctx.moveTo(34, 25);
+    ctx.lineTo(45, 28);
+    ctx.stroke();
+
+    // Ошейник.
+    ctx.strokeStyle = "#ff72b6";
+    ctx.lineWidth = 3;
+
+    ctx.beginPath();
+    ctx.ellipse(15, 24, 7, 5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  } else {
+    // Обычная собака.
+
+    ctx.strokeStyle = "#a56b35";
+    ctx.lineWidth = 6;
+
+    ctx.beginPath();
+    ctx.moveTo(-13, 28);
+    ctx.lineTo(-23, 18 + Math.sin(time * 2) * 5);
+    ctx.stroke();
+
+    // Лапы.
+    ctx.strokeStyle = "#8b542d";
+    ctx.lineWidth = 6;
+
+    ctx.beginPath();
+    ctx.moveTo(-5, 39);
+    ctx.lineTo(-10 + swing, 51);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(9, 39);
+    ctx.lineTo(12 - swing, 51);
+    ctx.stroke();
+
+    // Тело.
+    ctx.fillStyle = "#b77a40";
+
+    ctx.beginPath();
+    ctx.ellipse(0, 30, 23, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Передние лапы.
+    ctx.strokeStyle = "#b77a40";
+    ctx.lineWidth = 7;
+
+    ctx.beginPath();
+    ctx.moveTo(14, 35);
+    ctx.lineTo(17 + swing, 50);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(20, 35);
+    ctx.lineTo(19 - swing, 50);
+    ctx.stroke();
+
+    // Голова.
+    ctx.fillStyle = "#c58b53";
+
+    ctx.beginPath();
+    ctx.arc(25, 18, 13, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Уши.
+    ctx.fillStyle = "#744326";
+
+    ctx.beginPath();
+    ctx.ellipse(16, 9, 6, 10, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.ellipse(32, 9, 6, 10, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Глаз и нос.
+    ctx.fillStyle = "#111";
+
+    ctx.beginPath();
+    ctx.arc(29, 16, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(37, 22, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Ошейник.
+    ctx.strokeStyle = "#00eaff";
+    ctx.lineWidth = 3;
+
+    ctx.beginPath();
+    ctx.ellipse(15, 24, 7, 5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// ======================================
+// JDH DRAW
+// ======================================
+
+function drawJDH(x, y, time) {
+  ctx.save();
+  ctx.translate(x - camera, y);
+
+  const swing = Math.sin(time) * 8;
+
+  ctx.strokeStyle = "#222735";
+  ctx.lineWidth = 10;
+  ctx.lineCap = "round";
+
+  ctx.beginPath();
+  ctx.moveTo(0, 47);
+  ctx.lineTo(-5 + swing, 64);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(13, 47);
+  ctx.lineTo(16 - swing, 64);
+  ctx.stroke();
+
+  ctx.fillStyle = "#f1f1f1";
+  ctx.fillRect(-12 + swing, 62, 17, 6);
+  ctx.fillRect(10 - swing, 62, 17, 6);
+
+  ctx.fillStyle = "#8b1647";
+
+  ctx.beginPath();
+  ctx.roundRect(-5, 17, 26, 36, 5);
+  ctx.fill();
+
+  ctx.strokeStyle = "#ff3c87";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.strokeStyle = "#7c1743";
+  ctx.lineWidth = 8;
+
+  ctx.beginPath();
+  ctx.moveTo(-2, 25);
+  ctx.lineTo(-12 - swing, 40);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(19, 25);
+  ctx.lineTo(26 + swing, 38);
+  ctx.stroke();
+
+  ctx.fillStyle = "#bb896b";
+
+  ctx.beginPath();
+  ctx.arc(8, 10, 13, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "#631435";
+  ctx.lineWidth = 5;
+
+  ctx.beginPath();
+  ctx.arc(8, 10, 14, Math.PI, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = "#15131d";
+  ctx.fillRect(-4, 10, 24, 10);
+
+  ctx.fillStyle = "#ff426e";
+  ctx.fillRect(0, 9, 5, 3);
+  ctx.fillRect(10, 9, 5, 3);
+
+  ctx.fillStyle = "#ff4a87";
+  ctx.font = "bold 11px Arial";
+  ctx.fillText("JDH", -2, -10);
+
+  if (elapsedSeconds >= 30) {
+    ctx.strokeStyle = "#ff426e";
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.6;
+
+    ctx.beginPath();
+    ctx.moveTo(-20, 25);
+    ctx.lineTo(-43, 25);
+    ctx.moveTo(-18, 35);
+    ctx.lineTo(-38, 35);
+    ctx.stroke();
+
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
+}
+
+// ======================================
+// OBSTACLES DRAW
+// ======================================
+
+function drawObstacles() {
+  for (const o of obstacles) {
+    const x = o.x - camera;
+
+    if (x < -150 || x > W + 150) continue;
+
+    if (o.type === "box") {
+      ctx.fillStyle = "#744a29";
+      ctx.fillRect(x, ground - o.h, o.w, o.h);
+
+      ctx.strokeStyle = "#ffb44d";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x, ground - o.h, o.w, o.h);
+    }
+
+    if (o.type === "barrier") {
+      ctx.fillStyle = "#b92b4d";
+      ctx.fillRect(x, ground - o.h, o.w, o.h);
+
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 4;
+
+      for (let i = 0; i < o.w; i += 30) {
+        ctx.beginPath();
+        ctx.moveTo(x + i, ground);
+        ctx.lineTo(x + i + 25, ground - o.h);
+        ctx.stroke();
+      }
+    }
+
+    if (o.type === "laser") {
+      const laserY = ground - 44;
+
+      ctx.strokeStyle = "#ff174d";
+      ctx.lineWidth = 2;
+      ctx.shadowColor = "#ff174d";
+      ctx.shadowBlur = 14;
+
+      ctx.beginPath();
+      ctx.moveTo(x, laserY);
+      ctx.lineTo(x + o.w, laserY);
+      ctx.stroke();
+
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = "#ff8db3";
+
+      ctx.beginPath();
+      ctx.arc(x, laserY, 4, 0, Math.PI * 2);
+      ctx.arc(x + o.w, laserY, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+// ======================================
+// COINS DRAW
+// ======================================
+
+function drawCoins() {
+  for (const c of coins) {
+    if (c.taken) continue;
+
+    const x = c.x - camera;
+
+    if (x < -30 || x > W + 30) continue;
+
+    ctx.fillStyle = "#ffda52";
+    ctx.shadowColor = "#ffcc33";
+    ctx.shadowBlur = 15;
+
+    ctx.beginPath();
+    ctx.arc(x, c.y, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = "#704900";
+    ctx.font = "bold 12px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("$", x, c.y + 4);
+    ctx.textAlign = "left";
+  }
+}
+
+// ======================================
+// POWERUPS DRAW
+// ======================================
+
+function drawPowerups() {
+  for (const p of powerups) {
+    if (p.taken) continue;
+
+    const x = p.x - camera;
+
+    if (x < -30 || x > W + 30) continue;
+
+    if (p.type === "energy") {
+      ctx.fillStyle = "#00eaff";
+      ctx.shadowColor = "#00eaff";
+      ctx.shadowBlur = 18;
+
+      ctx.beginPath();
+      ctx.arc(x, p.y, 13, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = "#03233a";
+      ctx.font = "bold 16px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("⚡", x, p.y + 6);
+      ctx.textAlign = "left";
+    }
+
+    if (p.type === "shield") {
+      ctx.fillStyle = "#00ff99";
+      ctx.shadowColor = "#00ff99";
+      ctx.shadowBlur = 18;
+
+      ctx.beginPath();
+      ctx.arc(x, p.y, 14, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = "#033b2c";
+      ctx.font = "bold 16px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("S", x, p.y + 5);
+      ctx.textAlign = "left";
+    }
+  }
+}
+
+// ======================================
+// DRAW
+// ======================================
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  drawBackground();
+  drawCheckpoints();
+  drawObstacles();
+  drawCoins();
+  drawPowerups();
+
+  if (
+    player.invincible <= 0 ||
+    Math.floor(player.invincible / 5) % 2 === 0
+  ) {
+    drawHacker(
+      player.x,
+      player.y,
+      player.runTime,
+      player.sliding
+    );
+  }
+
+  drawJetpack();
+  drawFlightEffects();
+
+  // Питомец следует за героем по высоте.
+  const petY =
+    player.flightMode !== "idle"
+      ? player.y + 24
+      : ground - 52;
+
+  drawDog(
+    player.x - 48,
+    petY,
+    dog.runTime
+  );
+
+  drawJDH(
+    jdh.x,
+    ground - 65,
+    jdh.runTime
+  );
+
+  document.getElementById("message").style.opacity =
+    messageTimer > 0 ? "1" : ".7";
+}
+
+// ======================================
+// GAME LOOP
+// ======================================
+
+function loop(timestamp) {
+  const dt = Math.min(timestamp - (lastTime || timestamp), 40);
+
+  lastTime = timestamp;
+
+  if (state === "playing") {
+    update(dt);
+  }
+
+  draw();
+
+  requestAnimationFrame(loop);
+}
+
+// ======================================
+// INIT
+// ======================================
+
+updateWallet();
+resetGame();
+requestAnimationFrame(loop);
+
+</script>
+</body>
+</html>
